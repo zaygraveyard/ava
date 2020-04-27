@@ -769,7 +769,24 @@ export interface MetaInterface {
 
 	/** Directory where snapshots are stored. */
 	snapshotDirectory: string;
+
+	/** Register a plugin with AVA. */
+	register(plugin: {
+		id: string;
+		type: 'shared-worker';
+		worker: {
+			filename: string;
+		};
+	}): Promise<SharedWorkerPlugin>;
 }
+
+// TODO: Document functions.
+export type SharedWorkerPlugin = {
+	onMessage(callback: (value: unknown) => void): () => void;
+	postMessage(value: any): void;
+	ref(): void;
+	unref(): void;
+};
 
 /** Call to declare a test, or chain to declare hooks or test modifiers */
 declare const test: TestInterface;
