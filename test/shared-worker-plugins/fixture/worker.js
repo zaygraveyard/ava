@@ -1,3 +1,5 @@
+// TODO: Negotiate a protocol with AVA.
+
 const {parentPort} = require('worker_threads'); // eslint-disable-line node/no-unsupported-features/node-builtins
 
 let stored;

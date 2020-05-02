@@ -1,37 +1,24 @@
-const test = require('../../..');
+const {registerSharedWorker} = require('ava/plugin');
 
-const registration = test.meta.register({
-	id: __filename,
-	type: 'shared-worker',
-	worker: {
-		filename: require.resolve('./worker')
-	}
+const registration = registerSharedWorker({
+	filename: require.resolve('./worker')
 });
 
 exports.store = async value => {
-	const shared = await registration;
-	shared.postMessage({type: 'store', value});
+	const status = registration.publish({type: 'store', value});
+	await status.response;
 };
 
-let retrievalCounter = 0;
 exports.retrieve = async () => {
-	const id = retrievalCounter++;
+	const status = registration.publish({type: 'retrieve'});
+	const {data: value} = await status.response;
+	return value;
+};
 
-	const shared = await registration;
-	shared.postMessage({type: 'retrieve', id});
-
-	let dispose;
-	try {
-		shared.ref();
-		return await new Promise(resolve => {
-			dispose = shared.onMessage(message => {
-				if (message.id === id) {
-					resolve(message.value);
-				}
-			});
-		});
-	} finally {
-		shared.unref();
-		dispose();
+exports.subscribe = async function * () {
+	for await (const {data} of registration.subscribe()) {
+		if (data.type === 'change') {
+			yield data.value;
+		}
 	}
 };
