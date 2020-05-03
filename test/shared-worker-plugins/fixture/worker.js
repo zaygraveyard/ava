@@ -7,6 +7,6 @@ parentPort.on('message', message => {
 	if (message.type === 'store') {
 		stored = message.value;
 	} else if (message.type === 'retrieve') {
-		parentPort.postMessage({id: message.id, value: stored});
+		parentPort.postMessage({replyTo: message.messageId, data: stored});
 	}
 });
