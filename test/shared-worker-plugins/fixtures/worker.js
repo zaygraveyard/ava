@@ -1,12 +1,14 @@
-// TODO: Negotiate a protocol with AVA.
+module.exports = async ({negotiateProtocol}) => {
+	const protocol = negotiateProtocol(['experimental']);
 
-const {parentPort} = require('worker_threads'); // eslint-disable-line node/no-unsupported-features/node-builtins
-
-let stored;
-parentPort.on('message', message => {
-	if (message.type === 'store') {
-		stored = message.value;
-	} else if (message.type === 'retrieve') {
-		parentPort.postMessage({replyTo: message.messageId, data: stored});
+	let stored;
+	for await (const message of protocol.subscribe()) {
+		if (message.data.type === 'store') {
+			stored = message.data.value;
+			message.reply(null);
+			protocol.broadcast({type: 'change', value: stored});
+		} else if (message.data.type === 'retrieve') {
+			message.reply(stored);
+		}
 	}
-});
+};

@@ -1,11 +1,10 @@
 const path = require('path');
-const v8 = require('v8');
 
 const test = require('@ava/test');
 const execa = require('execa');
 
 const cliPath = path.resolve(__dirname, '../../cli.js');
-const serialization = process.versions.node >= '12.16.0' ? 'advanced' : 'json';
+const serialization = require('../../lib/data-serialization');
 
 exports.fixture = async (...args) => {
 	const cwd = path.join(path.dirname(test.meta.file), 'fixtures');
@@ -14,7 +13,7 @@ exports.fixture = async (...args) => {
 			AVA_EMIT_RUN_STATUS_OVER_IPC: 'I\'ll find a payphone baby / Take some time to talk to you'
 		},
 		cwd,
-		serialization,
+		serialization: serialization.useAdvanced ? 'advanced' : 'json',
 		stderr: 'inherit'
 	});
 
@@ -23,9 +22,7 @@ exports.fixture = async (...args) => {
 	};
 
 	running.on('message', message => {
-		if (serialization === 'json') {
-			message = v8.deserialize(Uint8Array.from(message));
-		}
+		message = serialization.deserializeData(message);
 
 		switch (message.type) {
 			case 'test-passed': {

@@ -1,7 +1,8 @@
 const {registerSharedWorker} = require('ava/plugin');
 
 const worker = registerSharedWorker({
-	filename: require.resolve('./worker')
+	filename: require.resolve('./worker'),
+	supportedProtocols: ['experimental']
 });
 
 exports.store = async value => {
